@@ -1,7 +1,8 @@
 import cors from 'cors';
-import express, { NextFunction, Request, Response } from 'express';
+import express from 'express';
 import { PORT, WHITE_LIST } from './configs/env.config';
-import { StatusCodes } from 'http-status-codes';
+import { ErrorMiddleware } from './middlewares/error.middleware';
+import { AuthRoutes } from './features/auth/auth.routes';
 
 const app = express();
 
@@ -16,13 +17,9 @@ app.use(
 
 app.use(express.json());
 
-app.use((err: any, _: Request, res: Response, __: NextFunction) => {
-  res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-    success: false,
-    message: err?.message,
-    data: null,
-  });
-});
+app.use('/auth', AuthRoutes);
+
+app.use(ErrorMiddleware);
 
 if (process.env.NODE_ENV === 'development') {
   app.listen(PORT, () => {
