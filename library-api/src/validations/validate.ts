@@ -1,18 +1,16 @@
+import { StatusCodes } from 'http-status-codes';
 import { ZodType } from 'zod';
+import { ResponseError } from '../utils/response-error.util';
 
-export function validate<T>(
-  schema: ZodType<T>,
-  data: unknown,
-  useSafeParse: boolean = false,
-): T {
-  if (useSafeParse) {
-    const result = schema.safeParse(data);
+export function validate<T>(schema: ZodType<T>, data: unknown): T {
+  const result = schema.safeParse(data);
 
-    if (!result.success) {
-      throw result.error;
-    }
-    return result.data;
+  if (!result.success) {
+    throw new ResponseError(
+      StatusCodes.UNPROCESSABLE_ENTITY,
+      result.error.issues.map((issue) => issue.message).join(', '),
+    );
   }
 
-  return schema.parse(data);
+  return result.data;
 }
