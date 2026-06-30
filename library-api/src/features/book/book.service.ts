@@ -24,7 +24,7 @@ export class BookService {
         'Book title/isbn already exist',
       );
 
-    await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx) => {
       const createdBook = await tx.book.create({
         data: {
           title: body.title,
