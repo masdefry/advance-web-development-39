@@ -1,8 +1,8 @@
 import cors from 'cors';
 import express from 'express';
-import { PORT, WHITE_LIST } from './configs/env.config';
+import { API_PREFIX, PORT, WHITE_LIST } from './configs/env.config';
 import { ErrorMiddleware } from './middlewares/error.middleware';
-import { AuthRoutes } from './features/auth/auth.routes';
+import { AuthRoute } from './features/auth/auth.route';
 
 const app = express();
 
@@ -17,7 +17,7 @@ app.use(
 
 app.use(express.json());
 
-app.use('/auth', AuthRoutes);
+app.use(`${API_PREFIX}/auth`, AuthRoute);
 
 app.use(ErrorMiddleware);
 
