@@ -3,6 +3,7 @@ import express from 'express';
 import { API_PREFIX, PORT, WHITE_LIST } from './configs/env.config';
 import { ErrorMiddleware } from './middlewares/error.middleware';
 import { AuthRoute } from './features/auth/auth.route';
+import { BookRoute } from './features/book/book.route';
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use(
 app.use(express.json());
 
 app.use(`${API_PREFIX}/auth`, AuthRoute);
+app.use(`${API_PREFIX}/books`, BookRoute);
 
 app.use(ErrorMiddleware);
 

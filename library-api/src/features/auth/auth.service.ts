@@ -1,6 +1,8 @@
+import { StatusCodes } from 'http-status-codes';
 import { prisma } from '../../configs/prisma-client.config';
 import { BcryptUtil } from '../../utils/bcrypt.util';
 import { JWTUtil } from '../../utils/jwt.util';
+import { ResponseError } from '../../utils/response-error.util';
 import {
   AuthLoginInput,
   AuthRegisterEmployeeInput,
@@ -15,7 +17,7 @@ export class AuthService {
       },
     });
 
-    if (!existingUser) throw new Error('Invalid credential email/password');
+    if (!existingUser) throw new ResponseError(StatusCodes.UNAUTHORIZED, 'Invalid credential email/password');
 
     const isValid = await BcryptUtil.comparePassword(
       body.password,

@@ -7,9 +7,9 @@ export const ErrorMiddleware = (
   res: Response,
   __: NextFunction,
 ) => {
-  res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+  res.status(err?.statusCode ?? 500).json({
     success: false,
-    message: err?.message,
+    message: err?.isExpose ? err?.message : 'Internal Server Error',
     data: null,
   });
 };
