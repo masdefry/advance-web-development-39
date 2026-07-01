@@ -9,10 +9,9 @@ export class BookController {
     const { body } = validate(BookValidation.CREATE, {
       body: req.body,
     });
-
     const files: Express.Multer.File[] = Array.isArray(req.files)
-      ? req.files
-      : [];
+    ? req.files
+    : [];
 
     const createdBook = await BookService.create({ body }, files);
 

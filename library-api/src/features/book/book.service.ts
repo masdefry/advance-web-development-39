@@ -2,6 +2,7 @@ import { StatusCodes } from 'http-status-codes';
 import { prisma } from '../../configs/prisma-client.config';
 import { ResponseError } from '../../utils/response-error.util';
 import { BookCreateInput } from './book.validation';
+import { CloudinaryUtil } from '../../utils/cloudinary.util';
 
 export class BookService {
   static async create({ body }: BookCreateInput, files: Express.Multer.File[]) {
@@ -42,17 +43,28 @@ export class BookService {
             {imageurl, bookId: createdBook.id}
         ]
     */
+      /* IF USING DISK STORAGE */
+      // const bookImageToCreate = files?.map((image) => {
+      //   const destination = image.destination.split('/').slice(-2).join('/');
+      //   return {
+      //     imageUrl: `${destination}/${image?.filename}`,
+      //     bookId: createdBook.id,
+      //   };
+      // });
 
-      const bookImageToCreate = files?.map((image) => {
-        const destination = image.destination.split('/').slice(-2).join('/');
+      /* IF USING MEMORY STORAGE & CLOUDINARY */
+      const uploadedImageFiles = files?.map(async (image) => {
+        const secureUrl = await CloudinaryUtil.uploadStream(image.buffer);
         return {
-          imageUrl: `${destination}/${image?.filename}`,
+          imageUrl: secureUrl,
           bookId: createdBook.id,
-        };
+        }
       });
 
+      const bookImagesToCreate = await Promise.all(uploadedImageFiles);
+
       await tx.bookImage.createMany({
-        data: bookImageToCreate,
+        data: bookImagesToCreate,
       });
 
       return createdBook;

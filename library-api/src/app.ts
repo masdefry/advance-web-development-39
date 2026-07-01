@@ -5,6 +5,7 @@ import { ErrorMiddleware } from './middlewares/error.middleware';
 import { AuthRoute } from './features/auth/auth.route';
 import { BookRoute } from './features/book/book.route';
 import cookieParser from 'cookie-parser';
+import path from 'path';
 
 const app = express();
 
@@ -20,6 +21,12 @@ app.use(
 app.use(express.json());
 
 app.use(cookieParser());
+
+/* Serve static files from the uploads directory */
+app.use(
+  `${API_PREFIX}/src/uploads`,
+  express.static(path.join(__dirname, 'uploads')),
+);
 
 app.use(`${API_PREFIX}/auth`, AuthRoute);
 app.use(`${API_PREFIX}/books`, BookRoute);

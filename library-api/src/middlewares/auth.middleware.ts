@@ -5,9 +5,15 @@ import { StatusCodes } from 'http-status-codes';
 
 export class AuthMiddleware {
   static authenticated(req: Request, res: Response, next: NextFunction) {
-    const { token } = req?.cookies.token;
+    const cookies = req?.cookies;
 
-    const payload = JWTUtil.verifyToken(token);
+    if (!cookies?.token)
+      throw new ResponseError(
+        StatusCodes.UNAUTHORIZED,
+        'Token must be provided',
+      );
+
+    const payload = JWTUtil.verifyToken(cookies?.token?.token);
 
     res.locals.payload = payload;
 

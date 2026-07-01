@@ -6,35 +6,44 @@ import { StatusCodes } from 'http-status-codes';
 
 export class MulterMiddleware {
   private acceptedFiles: string[] = [];
+  private storageType: 'diskStorage' | 'memoryStorage' = 'diskStorage';
 
-  constructor(acceptedFiles: string[]) {
+  constructor(
+    acceptedFiles: string[],
+    storageType: 'diskStorage' | 'memoryStorage',
+  ) {
     this.acceptedFiles = acceptedFiles;
+    this.storageType = storageType;
   }
   private storage(): StorageEngine {
-    return multer.diskStorage({
-      destination: function (
-        req: Request,
-        file: Express.Multer.File,
-        cb: (error: Error | null, destination: string) => void,
-      ) {
-        const mainDir = path.join(process.cwd()); // root dir: /libray-api
-        cb(null, `${mainDir}/src/uploads`);
-      },
-      filename: function (
-        req: Request,
-        file: Express.Multer.File,
-        cb: (error: Error | null, destination: string) => void,
-      ) {
-        const extensionFile = file.originalname.split('.').slice(-1);
-        const uniqueSuffix =
-          Date.now() +
-          '-' +
-          Math.round(Math.random() * 1e9) +
-          '.' +
-          extensionFile;
-        cb(null, file.fieldname + '-' + uniqueSuffix);
-      },
-    });
+    if (this.storageType === 'diskStorage') {
+      return multer.diskStorage({
+        destination: function (
+          req: Request,
+          file: Express.Multer.File,
+          cb: (error: Error | null, destination: string) => void,
+        ) {
+          const mainDir = path.join(process.cwd()); // root dir: /libray-api
+          cb(null, `${mainDir}/src/uploads`);
+        },
+        filename: function (
+          req: Request,
+          file: Express.Multer.File,
+          cb: (error: Error | null, destination: string) => void,
+        ) {
+          const extensionFile = file.originalname.split('.').slice(-1);
+          const uniqueSuffix =
+            Date.now() +
+            '-' +
+            Math.round(Math.random() * 1e9) +
+            '.' +
+            extensionFile;
+          cb(null, file.fieldname + '-' + uniqueSuffix);
+        },
+      });
+    }
+
+    return multer.memoryStorage();
   }
 
   private fileFilter(
@@ -53,8 +62,6 @@ export class MulterMiddleware {
   }
 
   public upload(limitFileSize: number): Multer {
-    console.log('Upload');
-    console.log(limitFileSize);
     return multer({
       storage: this.storage(),
       fileFilter: this.fileFilter.bind(this),
