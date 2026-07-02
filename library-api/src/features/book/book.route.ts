@@ -17,3 +17,5 @@ BookRoute.post(
   multerUpload.array('BOOK_IMAGES', 3),
   BookController.create,
 );
+
+BookRoute.get('/', BookController.getAll);

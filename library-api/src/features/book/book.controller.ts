@@ -21,4 +21,19 @@ export class BookController {
       data: createdBook,
     });
   }
+
+  static async getAll(req: Request, res: Response){
+    const {query} = validate(BookValidation.LIST_QUERY, {
+      query: req.query
+    })
+
+    const {books, meta} = await BookService.getAll({query});
+
+    res.status(StatusCodes.OK).json({
+      success: true, 
+      message: 'Books retrieved successfully', 
+      data: books, 
+      meta
+    })
+  }
 }

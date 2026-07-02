@@ -40,3 +40,14 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 export default app;
+
+
+
+
+
+
+
+/*
+  Buatlah endpoint get all books dengan query params search untuk filter berasarkan book title/author disertai dengan 
+  pagination dan limit. Endpoint ini harus mengembalikan data buku yang sesuai dengan filter dan pagination yang diberikan.
+*/

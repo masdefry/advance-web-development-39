@@ -1,8 +1,9 @@
 import { StatusCodes } from 'http-status-codes';
 import { prisma } from '../../configs/prisma-client.config';
 import { ResponseError } from '../../utils/response-error.util';
-import { BookCreateInput } from './book.validation';
+import { BookCreateInput, BookListQueryInput } from './book.validation';
 import { CloudinaryUtil } from '../../utils/cloudinary.util';
+import { Prisma } from '../../../generated/prisma';
 
 export class BookService {
   static async create({ body }: BookCreateInput, files: Express.Multer.File[]) {
@@ -58,7 +59,7 @@ export class BookService {
         return {
           imageUrl: secureUrl,
           bookId: createdBook.id,
-        }
+        };
       });
 
       const bookImagesToCreate = await Promise.all(uploadedImageFiles);
@@ -69,5 +70,51 @@ export class BookService {
 
       return createdBook;
     });
+  }
+
+  static async getAll({ query }: BookListQueryInput) {
+    const skip = (query.page - 1) * query.limit; // offset
+    const take = query.limit; // limit
+
+    const where: Prisma.BookWhereInput = {};
+
+    if (query.search) {
+      where.OR = [
+        {
+          title: {
+            contains: query.search,
+            mode: 'insensitive',
+          },
+        },
+        {
+          author: {
+            contains: query.search,
+            mode: 'insensitive',
+          },
+        },
+      ];
+    }
+
+    const [books, totalBooks] = await Promise.all([
+      await prisma.book.findMany({
+        where,
+        skip,
+        take,
+      }),
+
+      await prisma.book.count({
+        where
+      }),
+    ]);
+
+    return {
+      books, 
+      meta: {
+        page: query.page,
+        limit: take, 
+        totalData: totalBooks, 
+        totalPage: Math.ceil(totalBooks/take)
+      }
+    }
   }
 }
