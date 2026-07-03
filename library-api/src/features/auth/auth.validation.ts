@@ -41,7 +41,6 @@ export class AuthValidation {
         .min(1, 'Email is required field')
         .email('Email format is invalid')
         .transform((email) => email.trim().toLocaleLowerCase()),
-      password: zod.string().min(1, 'Password is required field'),
       fullName: zod
         .string()
         .min(1, 'Fullname is required field')

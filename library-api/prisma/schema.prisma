@@ -33,11 +33,12 @@ model User {
 model Employee {
   id           String    @id @default(uuid())
   email        String    @unique
-  password     String
+  password     String?    
   fullName     String    @db.VarChar(100)
   idCardNumber String    @db.VarChar(20)
   address      String
   role         Role
+  verified     Boolean   @default(false)       
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   deletedAt    DateTime?

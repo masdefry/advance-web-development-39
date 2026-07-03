@@ -100,6 +100,9 @@ export class BookService {
         where,
         skip,
         take,
+        include: {
+          book_images: true
+        }
       }),
 
       await prisma.book.count({

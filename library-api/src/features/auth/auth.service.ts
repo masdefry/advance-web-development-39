@@ -8,6 +8,10 @@ import {
   AuthRegisterEmployeeInput,
   AuthRegisterInput,
 } from './auth.validation';
+import transporter from '../../configs/nodemailer.config';
+import fs from 'fs';
+import path from 'path';
+import Handlebars from 'handlebars';
 
 export class AuthService {
   static async loginUser({ body }: AuthLoginInput) {
@@ -17,7 +21,11 @@ export class AuthService {
       },
     });
 
-    if (!existingUser) throw new ResponseError(StatusCodes.UNAUTHORIZED, 'Invalid credential email/password');
+    if (!existingUser)
+      throw new ResponseError(
+        StatusCodes.UNAUTHORIZED,
+        'Invalid credential email/password',
+      );
 
     const isValid = await BcryptUtil.comparePassword(
       body.password,
@@ -73,6 +81,12 @@ export class AuthService {
 
     if (!existingUser) throw new Error('Invalid credential email/password');
 
+    if (!existingUser?.password || !existingUser.verified)
+      throw new ResponseError(
+        StatusCodes.UNAUTHORIZED,
+        'User account is not verified',
+      );
+
     const isValid = await BcryptUtil.comparePassword(
       body.password,
       existingUser.password,
@@ -101,17 +115,31 @@ export class AuthService {
 
     if (existingUser) throw new Error('Email already exists');
 
-    const passwordHashed = await BcryptUtil.hashPassword(body.password);
-
     const user = await prisma.employee.create({
       data: {
         email: body.email,
-        password: passwordHashed,
         fullName: body.fullName,
         idCardNumber: body.idCardNumber,
-        address: body.address, 
+        address: body.address,
         role: body.role,
       },
+    });
+
+    const verificationToken = JWTUtil.signVerificationToken({sub: user.id});
+
+    const mainDir = path.join(process.cwd())    
+    const templateHtml = fs.readFileSync(`${mainDir}/src/templates/email-verification.html`, 'utf-8'); 
+    const compiledTemplateHtml = Handlebars.compile(templateHtml)
+    const html = compiledTemplateHtml({
+      companyName: 'Ruang Baca', 
+      name: user?.fullName, 
+      verificationUrl: `http://localhost:3001/email-verification/${verificationToken}`
+    })
+
+    await transporter.sendMail({
+      to: body.email,
+      subject: 'Welcome New Employee',
+      html,
     });
 
     const { password, idCardNumber, ...safeUser } = user;
@@ -119,3 +147,9 @@ export class AuthService {
     return safeUser;
   }
 }
+
+/*
+  - Register employee di handle oleh ADMIN/SUPER_ADMIN
+  - Setiap employee baru yg ter-register, akan mendapatkan email verification untuk meng-aktivasi akun nya sekaligus melakukan set password
+  - Employee yang akun nya belum ter-verifikasi, tidak bisa melakukan login 
+*/
