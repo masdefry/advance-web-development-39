@@ -6,6 +6,7 @@ import { AuthRoute } from './features/auth/auth.route';
 import { BookRoute } from './features/book/book.route';
 import cookieParser from 'cookie-parser';
 import path from 'path';
+import { TransactionRoute } from './features/transaction/transaction.route';
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use(
 
 app.use(`${API_PREFIX}/auth`, AuthRoute);
 app.use(`${API_PREFIX}/books`, BookRoute);
+app.use(`${API_PREFIX}/transactions`, TransactionRoute);
 
 app.use(ErrorMiddleware);
 
@@ -40,12 +42,6 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 export default app;
-
-
-
-
-
-
 
 /*
   Buatlah endpoint get all books dengan query params search untuk filter berasarkan book title/author disertai dengan 
