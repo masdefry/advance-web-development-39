@@ -14,39 +14,34 @@ export class TransactionService {
     userId,
     items,
   }: TransactionServiceProps) {
-    const updateBookBorrowed = items?.map(async (item: any) => {
+    for (const item of items) {
       const book = await prisma.book.findFirst({
-        where: {
-          id: item?.bookId,
-        },
+        where: { id: item.bookId },
       });
 
-      if (!book)
+      if (!book) {
         throw new ResponseError(StatusCodes.NOT_FOUND, 'Book not found');
+      }
 
-      const availability = book?.stocks - book?.borrowed;
+      const availability = book.stocks - book.borrowed;
 
-      if (item?.quantity > availability)
+      if (item.quantity > availability) {
         throw new ResponseError(
           StatusCodes.NOT_ACCEPTABLE,
           'Book not available',
         );
+      }
 
       await prisma.book.update({
+        where: { id: item.bookId },
         data: {
           borrowed: {
-            increment: parseInt(item.quantity),
+            increment: item.quantity,
           },
         },
-        where: {
-          id: item.bookId,
-        },
       });
-    });
+    }
 
-    const res = await Promise.all([updateBookBorrowed]);
-    console.log('???')
-    console.log(res)
     const createdTransaction = await prisma.transaction.create({
       data: {
         reservationDate: new Date(reservationDate),
