@@ -7,6 +7,7 @@ import { BookRoute } from './features/book/book.route';
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import { TransactionRoute } from './features/transaction/transaction.route';
+import { TransactionSchedule } from './jobs/transaction/transaction.schedule';
 
 const app = express();
 
@@ -22,6 +23,8 @@ app.use(
 app.use(express.json());
 
 app.use(cookieParser());
+
+TransactionSchedule.expiryReservation();
 
 /* Serve static files from the uploads directory */
 app.use(

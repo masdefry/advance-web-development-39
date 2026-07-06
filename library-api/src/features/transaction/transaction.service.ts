@@ -36,7 +36,7 @@ export class TransactionService {
         where: { id: item.bookId },
         data: {
           borrowed: {
-            increment: item.quantity,
+            increment: parseInt(item.quantity),
           },
         },
       });
