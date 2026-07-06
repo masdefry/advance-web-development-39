@@ -124,17 +124,20 @@ export class AuthService {
         role: body.role,
       },
     });
+    console.log(user.id);
+    const verificationToken = JWTUtil.signVerificationToken({ sub: user.id });
 
-    const verificationToken = JWTUtil.signVerificationToken({sub: user.id});
-
-    const mainDir = path.join(process.cwd())    
-    const templateHtml = fs.readFileSync(`${mainDir}/src/templates/email-verification.html`, 'utf-8'); 
-    const compiledTemplateHtml = Handlebars.compile(templateHtml)
+    const mainDir = path.join(process.cwd());
+    const templateHtml = fs.readFileSync(
+      `${mainDir}/src/templates/email-verification.html`,
+      'utf-8',
+    );
+    const compiledTemplateHtml = Handlebars.compile(templateHtml);
     const html = compiledTemplateHtml({
-      companyName: 'Ruang Baca', 
-      name: user?.fullName, 
-      verificationUrl: `http://localhost:3001/email-verification/${verificationToken}`
-    })
+      companyName: 'Ruang Baca',
+      name: user?.fullName,
+      verificationUrl: `http://localhost:3001/email-verification/${verificationToken}`,
+    });
 
     await transporter.sendMail({
       to: body.email,
@@ -145,6 +148,34 @@ export class AuthService {
     const { password, idCardNumber, ...safeUser } = user;
 
     return safeUser;
+  }
+
+  static async verifyEmployee(sub: string, password: string) {
+    console.log(sub);
+    const existingUser = await prisma.employee.findUnique({
+      where: {
+        id: sub,
+      },
+    });
+
+    if (!existingUser)
+      throw new ResponseError(StatusCodes.NOT_FOUND, `User not found`);
+
+    const hashedPassword = await BcryptUtil.hashPassword(password);
+
+    const employee = await prisma.employee.update({
+      data: {
+        password: hashedPassword,
+        verified: true,
+      },
+      where: {
+        id: sub,
+      },
+    });
+
+    const {id, password: employeePassword, idCardNumber, address, ...safeUser} = employee; 
+
+    return safeUser
   }
 }
 

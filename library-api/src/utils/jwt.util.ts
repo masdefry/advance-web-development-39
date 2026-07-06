@@ -1,5 +1,10 @@
 import jwt from 'jsonwebtoken';
-import { JWT_EXPIRES_IN, JWT_SECRET_KEY, JWT_SECRET_VERIFICATION_KEY, JWT_VERIFICATION_EXPIRES_IN } from '../configs/env.config';
+import {
+  JWT_EXPIRES_IN,
+  JWT_SECRET_KEY,
+  JWT_SECRET_VERIFICATION_KEY,
+  JWT_VERIFICATION_EXPIRES_IN,
+} from '../configs/env.config';
 import type { StringValue } from 'ms';
 export class JWTUtil {
   static signToken(payload: any) {
@@ -14,7 +19,7 @@ export class JWTUtil {
     });
   }
 
-  static verifyToken(token: string) {
-    return jwt.verify(token, JWT_SECRET_KEY!);
+  static verifyToken(token: string, secretKey: string) {
+    return jwt.verify(token, secretKey);
   }
 }

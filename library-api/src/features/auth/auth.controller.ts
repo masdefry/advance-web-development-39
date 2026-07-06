@@ -3,6 +3,9 @@ import { AuthService } from './auth.service';
 import { validate } from '../../validations/validate';
 import { AuthValidation } from './auth.validation';
 import { StatusCodes } from 'http-status-codes';
+import { JWTUtil } from '../../utils/jwt.util';
+import { JWT_SECRET_VERIFICATION_KEY } from '../../configs/env.config';
+import { ResponseError } from '../../utils/response-error.util';
 
 export class AuthController {
   static async loginUser(req: Request, res: Response) {
@@ -78,6 +81,28 @@ export class AuthController {
       sucess: true,
       message: 'Register employee successful',
       data: safeUser,
+    });
+  }
+
+  static async verifyEmployee(req: Request, res: Response) {
+    const token = req?.headers?.authorization?.split(' ')[1];
+    
+    let payload: any;
+    if (!token)
+      throw new ResponseError(
+        StatusCodes.UNAUTHORIZED,
+        'Token must be provide',
+      );
+
+    payload = JWTUtil.verifyToken(token, JWT_SECRET_VERIFICATION_KEY!);
+    const { password } = req.body;
+
+    const employee = await AuthService.verifyEmployee(payload.sub, password);
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: 'Employee verified successfully',
+      data: employee,
     });
   }
 }

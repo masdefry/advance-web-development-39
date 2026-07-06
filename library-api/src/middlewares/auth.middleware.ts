@@ -4,20 +4,21 @@ import { ResponseError } from '../utils/response-error.util';
 import { StatusCodes } from 'http-status-codes';
 
 export class AuthMiddleware {
-  static authenticated(req: Request, res: Response, next: NextFunction) {
-    const cookies = req?.cookies;
+  static authenticated(secretKey: string) {
+    return (req: Request, res: Response, next: NextFunction) => {
+      const cookies = req?.cookies;
+      if (!cookies?.token)
+        throw new ResponseError(
+          StatusCodes.UNAUTHORIZED,
+          'Token must be provided',
+        );
 
-    if (!cookies?.token)
-      throw new ResponseError(
-        StatusCodes.UNAUTHORIZED,
-        'Token must be provided',
-      );
+      const payload = JWTUtil.verifyToken(cookies?.token?.token, secretKey);
 
-    const payload = JWTUtil.verifyToken(cookies?.token?.token);
+      res.locals.payload = payload;
 
-    res.locals.payload = payload;
-
-    next();
+      next();
+    };
   }
 
   static authorized(allowedRoles: string[]) {
