@@ -85,16 +85,7 @@ export class AuthController {
   }
 
   static async verifyEmployee(req: Request, res: Response) {
-    const token = req?.headers?.authorization?.split(' ')[1];
-    
-    let payload: any;
-    if (!token)
-      throw new ResponseError(
-        StatusCodes.UNAUTHORIZED,
-        'Token must be provide',
-      );
-
-    payload = JWTUtil.verifyToken(token, JWT_SECRET_VERIFICATION_KEY!);
+    const payload = res.locals.payload; 
     const { password } = req.body;
 
     const employee = await AuthService.verifyEmployee(payload.sub, password);

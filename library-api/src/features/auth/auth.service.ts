@@ -115,39 +115,41 @@ export class AuthService {
 
     if (existingUser) throw new Error('Email already exists');
 
-    const user = await prisma.employee.create({
-      data: {
-        email: body.email,
-        fullName: body.fullName,
-        idCardNumber: body.idCardNumber,
-        address: body.address,
-        role: body.role,
-      },
+    return await prisma.$transaction(async (tx) => {
+      const user = await tx.employee.create({
+        data: {
+          email: body.email,
+          fullName: body.fullName,
+          idCardNumber: body.idCardNumber,
+          address: body.address,
+          role: body.role,
+        },
+      });
+
+      const verificationToken = JWTUtil.signVerificationToken({ sub: user.id });
+
+      const mainDir = path.join(process.cwd());
+      const templateHtml = fs.readFileSync(
+        `${mainDir}/src/templates/email-verification.html`,
+        'utf-8',
+      );
+      const compiledTemplateHtml = Handlebars.compile(templateHtml);
+      const html = compiledTemplateHtml({
+        companyName: 'Ruang Baca',
+        name: user?.fullName,
+        verificationUrl: `http://localhost:3001/email-verification/${verificationToken}`,
+      });
+
+      await transporter.sendMail({
+        to: body.email,
+        subject: 'Welcome New Employee',
+        html,
+      });
+
+      const { password, idCardNumber, ...safeUser } = user;
+      return safeUser;
     });
-    console.log(user.id);
-    const verificationToken = JWTUtil.signVerificationToken({ sub: user.id });
 
-    const mainDir = path.join(process.cwd());
-    const templateHtml = fs.readFileSync(
-      `${mainDir}/src/templates/email-verification.html`,
-      'utf-8',
-    );
-    const compiledTemplateHtml = Handlebars.compile(templateHtml);
-    const html = compiledTemplateHtml({
-      companyName: 'Ruang Baca',
-      name: user?.fullName,
-      verificationUrl: `http://localhost:3001/email-verification/${verificationToken}`,
-    });
-
-    await transporter.sendMail({
-      to: body.email,
-      subject: 'Welcome New Employee',
-      html,
-    });
-
-    const { password, idCardNumber, ...safeUser } = user;
-
-    return safeUser;
   }
 
   static async verifyEmployee(sub: string, password: string) {
@@ -173,9 +175,15 @@ export class AuthService {
       },
     });
 
-    const {id, password: employeePassword, idCardNumber, address, ...safeUser} = employee; 
+    const {
+      id,
+      password: employeePassword,
+      idCardNumber,
+      address,
+      ...safeUser
+    } = employee;
 
-    return safeUser
+    return safeUser;
   }
 }
 

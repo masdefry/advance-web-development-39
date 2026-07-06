@@ -34,4 +34,23 @@ export class AuthMiddleware {
       next();
     };
   }
+
+  static extractToken(secretKey: string){ 
+    return (req: Request, res: Response, next: NextFunction) => {
+      const token = req?.headers?.authorization?.split(' ')[1];
+    
+      let payload: any;
+      if (!token)
+        throw new ResponseError(
+          StatusCodes.UNAUTHORIZED,
+          'Token must be provide',
+        );
+
+      payload = JWTUtil.verifyToken(token, secretKey!);
+
+      res.locals.payload = payload; 
+
+      next();
+    }
+  }
 }

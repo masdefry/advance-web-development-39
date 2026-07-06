@@ -18,4 +18,4 @@ AuthRoute.post(
   AuthMiddleware.authorized([Role.SUPER_ADMIN]),
   AuthController.registerEmployee,
 );
-AuthRoute.patch('/verify-employee', AuthController.verifyEmployee);
+AuthRoute.patch('/verify-employee', AuthMiddleware.extractToken(JWT_SECRET_VERIFICATION_KEY!), AuthController.verifyEmployee);
