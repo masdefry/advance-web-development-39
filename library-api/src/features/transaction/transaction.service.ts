@@ -14,10 +14,10 @@ export class TransactionService {
     userId,
     items,
   }: TransactionServiceProps) {
-    const updateBookBorrowed = items?.forEach(async (item: any) => {
+    const updateBookBorrowed = items?.map(async (item: any) => {
       const book = await prisma.book.findFirst({
         where: {
-          id: item?.id,
+          id: item?.bookId,
         },
       });
 
@@ -35,17 +35,18 @@ export class TransactionService {
       await prisma.book.update({
         data: {
           borrowed: {
-            increment: item.quantity,
+            increment: parseInt(item.quantity),
           },
         },
         where: {
-          id: item.id,
+          id: item.bookId,
         },
       });
     });
 
-    await Promise.all([updateBookBorrowed]);
-
+    const res = await Promise.all([updateBookBorrowed]);
+    console.log('???')
+    console.log(res)
     const createdTransaction = await prisma.transaction.create({
       data: {
         reservationDate: new Date(reservationDate),
@@ -56,7 +57,7 @@ export class TransactionService {
 
     const createdTransactionItems = items.map((item) => ({
       bookId: item?.bookId,
-      quantity: item?.quantity,
+      quantity: parseInt(item?.quantity),
       transactionId: createdTransaction?.id,
     }));
 
