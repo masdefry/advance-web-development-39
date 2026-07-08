@@ -8,6 +8,7 @@ import cookieParser from 'cookie-parser';
 import path from 'path';
 import { TransactionRoute } from './features/transaction/transaction.route';
 import { TransactionSchedule } from './jobs/transaction/transaction.schedule';
+import { MorganMiddleware } from './middlewares/morgan.middleware';
 
 const app = express();
 
@@ -23,6 +24,8 @@ app.use(
 app.use(express.json());
 
 app.use(cookieParser());
+
+app.use(MorganMiddleware.handler());
 
 TransactionSchedule.expiryReservation();
 

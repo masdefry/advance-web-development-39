@@ -27,10 +27,11 @@ export class BookController {
       query: req.query
     })
 
-    const {books, meta} = await BookService.getAll({query});
+    const {cache, books, meta} = await BookService.getAll({query});
 
     res.status(StatusCodes.OK).json({
       success: true, 
+      cache, 
       message: 'Books retrieved successfully', 
       data: books, 
       meta

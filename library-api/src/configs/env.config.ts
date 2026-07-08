@@ -12,3 +12,7 @@ export const NODEMAILER_GOOGLE_APP_PASSWORD =
   process.env.NODEMAILER_GOOGLE_APP_PASSWORD;
 export const JWT_SECRET_VERIFICATION_KEY = 'abc12345';
 export const JWT_VERIFICATION_EXPIRES_IN = '1h';
+export const REDIS_HOST = process.env.REDIS_HOST;
+export const REDIS_PORT = process.env.REDIS_PORT;
+export const REDIS_PASSWORD = process.env.REDIS_PASSWORD;
+export const REDIS_DB = process.env.REDIS_DB;

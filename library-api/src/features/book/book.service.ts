@@ -4,6 +4,7 @@ import { ResponseError } from '../../utils/response-error.util';
 import { BookCreateInput, BookListQueryInput } from './book.validation';
 import { CloudinaryUtil } from '../../utils/cloudinary.util';
 import { Prisma } from '../../../generated/prisma';
+import redisClient from '../../configs/redis-client.config';
 
 export class BookService {
   static async create({ body }: BookCreateInput, files: Express.Multer.File[]) {
@@ -95,29 +96,52 @@ export class BookService {
       ];
     }
 
+    if (!query.search) {
+      const cache = await redisClient.get(`books:page:${query.page}`);
+
+      if (cache) {
+        const cacheBooks = JSON.parse(cache);
+        return {
+          cache: true,
+          books: cacheBooks,
+          meta: {
+            page: query.page,
+            limit: take,
+            totalData: cacheBooks.length,
+            totalPage: Math.ceil(cacheBooks.length / take),
+          },
+        };
+      }
+    }
+
     const [books, totalBooks] = await Promise.all([
       await prisma.book.findMany({
         where,
         skip,
         take,
         include: {
-          book_images: true
-        }
+          book_images: true,
+        },
       }),
 
       await prisma.book.count({
-        where
+        where,
       }),
     ]);
 
+    if(query.search){
+      await redisClient.set(`books:page:${query.page}`, JSON.stringify(books));
+    }
+
     return {
-      books, 
+      cache: false,
+      books,
       meta: {
         page: query.page,
-        limit: take, 
-        totalData: totalBooks, 
-        totalPage: Math.ceil(totalBooks/take)
-      }
-    }
+        limit: take,
+        totalData: totalBooks,
+        totalPage: Math.ceil(totalBooks / take),
+      },
+    };
   }
 }
